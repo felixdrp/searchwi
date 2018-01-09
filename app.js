@@ -1,6 +1,6 @@
 
 const fs = require('fs');
-const fileName = 'busqueda-bing.html'
+const fileName = 'busqueda-bing2.html'
 
 var imageInputSearchGoogle = require('./image-input-search-google')
 var imageInputSearchBing = require('./image-input-search-bing')
