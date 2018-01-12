@@ -61,7 +61,6 @@ async function a() {
 
   // console.log(options)
   options.searchParams.append('format', 'json')
-  options.searchParams.append('format', 'json')
 
   result = JSON.parse(await wikiWork(options))
   randomImages = [ ...randomImages, ...result.query.random ]
