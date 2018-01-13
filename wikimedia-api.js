@@ -45,9 +45,41 @@ async function requestWikiData(options) {
   // console.log(options)
   let result = {}
   let wikiData = []
+  let lastContinue = ''
 
   do {
-    result = JSON.parse(await requestCall(localOptions))
+    try {
+      result = await requestCall(localOptions)
+      // Check start by {
+      if (/^\{/.test(result)) {
+        result = JSON.parse(result)
+      } else {
+        result = {
+          error: 'Check result. It is not a json file.',
+          options: localOptions,
+          resultQuery: result
+        }
+        wikiData = [
+          ...wikiData,
+          ...result
+        ]
+        break
+      }
+    } catch(e) {
+      console.error(localOptions)
+      console.error(result)
+      console.error(e)
+    }
+    // Check result != last result
+    if (
+      JSON.stringify(wikiData[wikiData.length-1]) ==
+      JSON.stringify(
+        result.query.pages[Object.keys(result.query.pages)[0]]
+      )
+    ) {
+      // debugger
+      break
+    }
     // Proccess result
     // debugger
     wikiData = [
@@ -55,9 +87,13 @@ async function requestWikiData(options) {
       result.query.pages[Object.keys(result.query.pages)[0]]
     ]
     // console.log( result )
-
+    // debugger
     if (result.hasOwnProperty('continue')) {
-      if (localOptions.hasOwnProperty('continue')) {
+      if (localOptions.searchParams.has('continue')) {
+        // Remove unlimited continue fail
+        if (lastContinue == JSON.stringify(result.continue)) {
+          break
+        }
         for (let i in result.continue) {
           options.searchParams.set(i, result.continue[i])
         }
@@ -66,6 +102,7 @@ async function requestWikiData(options) {
           options.searchParams.append(i, result.continue[i])
         }
       }
+      lastContinue = JSON.stringify(result.continue)
     }
   } while (result.hasOwnProperty('continue'))
   // console.log('options')

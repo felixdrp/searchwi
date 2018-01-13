@@ -30,7 +30,7 @@ if (!images.ids) {
     // add the name with the wikimedia data.
     // media.names.push(key.id)
     // :-) Check limit
-    // if (media.ids.length > 40) {
+    // if (media.ids.length > 1) {
     //   break
     // }
   }
@@ -55,6 +55,8 @@ async function a() {
   var allQueries = []
   var counter = 0
   var parallelCounter = 0
+  // var mlk = await getWikiMediaData(16817314)
+  // console.log(mlk)
   for (let key in media.data) {
     let query = getWikiMediaData(key)
 
@@ -73,8 +75,8 @@ async function a() {
         console.log(`${counter} > id: ${key} > title: ${title}`)
       }
     )
-    // await each 5 queries
-    if (parallelCounter % 7 === 0) {
+    // await each 5 queries to pause the download
+    if (parallelCounter % 5 === 0) {
       allQueries.push(await query)
     } else {
       allQueries.push(query)
