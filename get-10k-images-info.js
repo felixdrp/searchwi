@@ -1,5 +1,7 @@
 // Retrive 10k images. info.
-var { getWikiMediaData } = require('./getWikiMediaData');
+// Execute with log:
+// node  get-10k-images-info.js | tee metadata.log
+var { getWikiMediaData } = require('./wikimedia-api');
 
 const fs = require('fs');
 const fileName = 'media-object.json'
@@ -8,8 +10,11 @@ var images = require('./random-images.json')
 var media = {
   // data indexed by ids
   data: {},
+  // nameToId: {},
+  titleToId: {},
   ids: [],
-  names: []
+  names: [],
+  titles: []
 }
 
 // Total number of random media
@@ -24,9 +29,10 @@ if (!images.ids) {
     media.ids.push(key.id)
     // add the name with the wikimedia data.
     // media.names.push(key.id)
-    if (media.ids.length > 4) {
-      break
-    }
+    // :-) Check limit
+    // if (media.ids.length > 4) {
+    //   break
+    // }
   }
   media.ids.sort()
   media.names.sort()
@@ -43,19 +49,44 @@ const repeatedIds = media.ids.reduce((s, v, i) => {
 }, 0)
 console.log('Number of Repeated ids: ', repeatedIds)
 
-console.log(getWikiMediaData(media.ids[0]))
 // https://commons.wikimedia.org/w/api.php?action=query&prop=info&pageids=10002109&format=json
 
 async function a() {
+  var allQueries = []
+  var counter = 0
+  for (let key in media.data) {
+    let query = getWikiMediaData(key)
+    // when query resolve add metadata to media
+    query.then(
+      (metadata) => {
+        // const name = metadata.imageInfo["0"].imageinfo["0"].extmetadata.ObjectName.value
+        const title = media.data[key].title
+        // Add metadata to media (data, ids, names, nameToId)
+        media.data[key] = { ...media.data[key], ...metadata }
+        // media.names.push(name)
+        // media.nameToId[name] = key
+        media.titles.push(title)
+        media.titleToId[title] = key
+        counter += 1
+        console.log(counter)
+      }
+    )
+    allQueries.push(query)
+  }
 
-
-  fs.writeFile(fileName, JSON.stringify({random : randomImages}), (err) => {
-    // throws an error, you could also catch it here
-    if (err) throw err;
-
-    // success case, the file was saved
-    console.log('medias saved!');
+  console.time('mlk')
+  Promise.all(allQueries).then((value) => {
+    // console.log(media);
+    // console.log(value);
+    console.timeEnd('mlk')
+    fs.writeFile(fileName, JSON.stringify(media), (err) => {
+      // throws an error, you could also catch it here
+      if (err) throw err;
+      // success case, the file was saved
+      console.log('medias with metadata saved!');
+    });
+    // debugger
   });
 }
 
-// a()
+a()

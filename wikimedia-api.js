@@ -3,7 +3,7 @@
 // https://commons.wikimedia.org/w/api.php?action=query&titles=File:Angela%20Merkel%20(2008).jpg&prop=globalusage|extlinks|imageinfo|revisions|pageimages&gulimit=500&ellimit=500&iiprop=url|size|mime|metadata|extmetadata|comment&rvprop=content&format=json
 // &iistart=2009-11-29T17:31:14Z&continue=||globalusage|extlinks
 
-// &prop=extlinks|revisions|pageimages&ellimit=500&rvprop=content
+// &prop=extlinks|revisions&ellimit=500&rvprop=content
 
 
 var https = require('https');
@@ -11,22 +11,32 @@ var { URL } = require('url');
 
 const postData = '';
 const baseUrl = 'https://commons.wikimedia.org/w/api.php?action=query&format=json'
-var optionsBasic = new url.URL(baseUrl)
+var optionsBasic = new URL(baseUrl)
 
-function getWikiMediaData(id) {
-  let url = `${baseUrl}&pageids=${id}&`
-  // let options = {...optionsBasic}
+async function getWikiMediaData(id) {
+  const url = `${baseUrl}&pageids=${id}&`
   // Select the props from wikimedia api query
-  let imageInfo = requestWikiData(new url.URL(
+  const imageInfo = requestWikiData(new URL(
     `${url}prop=imageinfo&iiprop=url|size|mime|metadata|extmetadata|comment`
   ))
-  let globalusage = requestWikiData(new url.URL(
+  const globalusage = requestWikiData(new URL(
     `${url}prop=globalusage&gulimit=500`
   ))
+  const extlinks = requestWikiData(new URL(
+    `${url}prop=extlinks&ellimit=500`
+  ))
+  const revisions = requestWikiData(new URL(
+    `${url}prop=revisions&rvprop=content`
+  ))
+  const pageimages = requestWikiData(new URL(
+    `${url}prop=pageimages`
+  ))
   return {
-    imageInfo
-    // ,globalusage
-
+    imageInfo: await imageInfo,
+    globalusage: await globalusage,
+    extlinks: await extlinks,
+    revisions: await revisions,
+    pageimages: await pageimages
   }
 }
 
@@ -34,13 +44,18 @@ async function requestWikiData(options) {
   let localOptions = options
   // console.log(options)
   let result = {}
-  let wikiData = {}
+  let wikiData = []
 
   do {
     result = JSON.parse(await requestCall(localOptions))
     // Proccess result
-    // wikiData = [ ...randomImages, ...result.query.random ]
-    console.log( result )
+    // debugger
+    wikiData = [
+      ...wikiData,
+      result.query.pages[Object.keys(result.query.pages)[0]]
+    ]
+    // console.log( result )
+
     if (result.hasOwnProperty('continue')) {
       if (localOptions.hasOwnProperty('continue')) {
         for (let i in result.continue) {
@@ -60,11 +75,11 @@ async function requestWikiData(options) {
 
 function requestCall(options) {
   return new Promise((resolve, reject) => {
-    console.time('label');
+    // console.time('label');
     const req = https.request(options, (res) => {
       let resultado = ''
-      console.log(`STATUS: ${res.statusCode}`);
-      console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+      // console.log(`STATUS: ${res.statusCode}`);
+      // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
 
       res.setEncoding('utf8');
       res.on('data', (chunk) => {
@@ -73,7 +88,7 @@ function requestCall(options) {
       });
       res.on('end', () => {
         // console.log('No more data in response.');
-        console.timeEnd('label');
+        // console.timeEnd('label');
         resolve(resultado);
       });
     });
