@@ -30,7 +30,7 @@ if (!images.ids) {
     // add the name with the wikimedia data.
     // media.names.push(key.id)
     // :-) Check limit
-    // if (media.ids.length > 4) {
+    // if (media.ids.length > 40) {
     //   break
     // }
   }
@@ -54,8 +54,10 @@ console.log('Number of Repeated ids: ', repeatedIds)
 async function a() {
   var allQueries = []
   var counter = 0
+  var parallelCounter = 0
   for (let key in media.data) {
     let query = getWikiMediaData(key)
+
     // when query resolve add metadata to media
     query.then(
       (metadata) => {
@@ -68,10 +70,16 @@ async function a() {
         media.titles.push(title)
         media.titleToId[title] = key
         counter += 1
-        console.log(counter)
+        console.log(`${counter} > id: ${key} > title: ${title}`)
       }
     )
-    allQueries.push(query)
+    // await each 5 queries
+    if (parallelCounter % 7 === 0) {
+      allQueries.push(await query)
+    } else {
+      allQueries.push(query)
+    }
+    parallelCounter += 1
   }
 
   console.time('mlk')
