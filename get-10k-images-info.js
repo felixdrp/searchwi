@@ -1,6 +1,6 @@
 // Retrive 10k images. info.
 // Execute with log:
-// node  get-10k-images-info.js | tee metadata.log
+// node get-10k-images-info.js |& tee metadata.log
 var { getWikiMediaData } = require('./wikimedia-api');
 
 const fs = require('fs');
