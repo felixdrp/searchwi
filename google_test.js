@@ -12,15 +12,6 @@ const urlSearch = (id) => {
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
 
-// fs.writeFile('./data/' + '111' + '/111-1.json', valor, (err) => {
-// // fs.writeFile(fileName, JSON.stringify(IISGoogle), (err) => {
-//   // throws an error, you could also catch it here
-//   if (err) throw err;
-//
-//   // success case, the file was saved
-//   console.log('web saved!');
-// });
-
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
 
@@ -31,20 +22,22 @@ const urlSearch = (id) => {
     var elementOverLastChildren = a.children[a.childElementCount - 2];
     var elements = [];
     var url, urlmatch;
-
-    for (let i of g) {
-      url = i.children[0].children[0].children[0].children[0].href
-      urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
-      if (urlmatch >= 2) {
-        url = decodeURIComponent(url[2])
+    if (a.childElementCount > 2) {
+      for (let i of g) {
+        url = i.children[0].children[0].children[0].children[0].href
+        urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
+        if (urlmatch >= 2) {
+          url = decodeURIComponent(url[2])
+        }
+        elements.push({
+          title: i.children[0].children[0].children[0].children[0].innerText,
+          url: url,
+          urlGreen: i.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
+          abstract: i.children[0].children[0].children[1].children[1].children[1].innerText
+        })
       }
-      elements.push({
-        title: i.children[0].children[0].children[0].children[0].innerText,
-        url: url,
-        urlGreen: i.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-        abstract: i.children[0].children[0].children[1].children[1].children[1].innerText
-      })
     }
+
     callback({
       searchRaw: a.innerHTML,
       results: elements
@@ -59,18 +52,20 @@ const urlSearch = (id) => {
     var elements = [];
     var url, urlmatch;
 
-    for (let n of g) {
-      url = n.children[0].children[0].children[0].children[0].href
-      urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
-      if (urlmatch >= 2) {
-        url = decodeURIComponent(url[2])
+    if (a.childElementCount > 2) {
+      for (let n of g) {
+        url = n.children[0].children[0].children[0].children[0].href
+        urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
+        if (urlmatch >= 2) {
+          url = decodeURIComponent(url[2])
+        }
+        elements.push({
+          title: n.children[0].children[0].children[0].children[0].innerText,
+          url: url,
+          urlGreen: n.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
+          abstract: n.children[0].children[0].children[1].children[1].children[1].innerText
+        })
       }
-      elements.push({
-        title: n.children[0].children[0].children[0].children[0].innerText,
-        url: url,
-        urlGreen: n.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-        abstract: n.children[0].children[0].children[1].children[1].children[1].innerText
-      })
     }
     callback({
       searchRaw: a.innerHTML,
@@ -102,13 +97,16 @@ const urlSearch = (id) => {
   })
 
   let pagesMaxNum = 21;
-  let nextPage, resultStat, querySearch;
+  let nextPage, numPage, resultStat, querySearch;
   let id;
   // Tell if the directory is new.
   let dirNew = true;
   let ls, lastFileNumber, fileCheck;
+
+  console.time('twenty files')
+
   try {
-    for (let i=0;i<2;i++) {
+    for (let i=0;i<20;i++) {
       id = images.ids[i]
       dirNew = true
       // Check if exist directory with id.
@@ -151,6 +149,7 @@ const urlSearch = (id) => {
         nextPage = await getNextPage();
         resultStat = await getResultStats();
         querySearch = await getFirstSearchResults();
+        numPage = 1
         try {
           fs.writeFileSync(
             `./data/${id}/${id}-1.json`,
@@ -175,10 +174,10 @@ const urlSearch = (id) => {
         querySearch = await getSearchResults();
         try {
           fs.writeFileSync(
-            `./data/${id}/${id}-${resultStat.pageNum}.json`,
+            `./data/${id}/${id}-${parseInt(resultStat.pageNum[1])}.json`,
             JSON.stringify({
               date: new Date(),
-              pageNum: resultStat.pageNum,
+              pageNum: parseInt(resultStat.pageNum[1]),
               querySearch,
               resultStat,
               nextPage
@@ -194,7 +193,7 @@ const urlSearch = (id) => {
     // await driver.get('https://www.google.co.uk/search?biw=1366&bih=598&tbs=sbi:AMhZZitqDPGPMgf35iApBjdRi1xrs3m6zavV2D20fkF_1_1w6eQxYq0Lw435xk6NXxXMzG_1Fm681_1Gu_1BC9dxsstlVj5morb7HWXIfyuMMz_1MUE8eh1CW-4HxZ88Kl12XEl9Hx0wkLlVcCkMZuJYXyf9PoKPLQVQXJTqS3s1oXy5jBh5VQ8WrbkmqD-Bv5LxJHPjTl54QtR3vREmIVYaEjymZM_1jZLJViH_1CzNd1sOyUDRp6ypMF5dRlNT8Z0m-k7Kl7E6_1d2KciXnuOp-T97AHQQJfmOcbOipKB-dOVoLqODvmIZuKbmvYMH1oSzd6sD22TeB6HiY909UzeftFoy1md5BtK1uMRh7mQ&ei=UmlfWqPYNKHNgAan_YKYDg&start=10&sa=N');
     // await driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN);
 
-
+    console.timeEnd('twenty files')
     // console.log( await driver.findElement(By.id('rso')) );
     var n = images;
     // debugger
