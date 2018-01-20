@@ -1,0 +1,23 @@
+{
+  "name": "searchwi",
+  "version": "1.0.0",
+  "description": "Use:",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixdrp/searchwi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/felixdrp/searchwi/issues"
+  },
+  "homepage": "https://github.com/felixdrp/searchwi#readme",
+  "dependencies": {
+    "geckodriver": "^1.10.0",
+    "selenium-webdriver": "^4.0.0-alpha.1"
+  }
+}
