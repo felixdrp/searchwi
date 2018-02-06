@@ -15,7 +15,9 @@ const urlSearch = (id) => {
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
 // Randomiza Aleatoriza el tiempo de navegacion para saltar defensas anti bots.
-const randomOMaticVsBot = () => setTimeoutPromise(2e3 + Math.floor(Math.random()*2e3), 'next!')
+const randomOMaticVsBot = () => {
+  return setTimeoutPromise(2e3 + Math.floor(Math.random()*2e3), 'next!')
+}
 
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
