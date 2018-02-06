@@ -19,6 +19,11 @@ const randomOMaticVsBot = () => {
   return setTimeoutPromise(2e3 + Math.floor(Math.random()*2e3), 'next!')
 }
 
+const awaitingUpload = () => {
+  return setTimeoutPromise(500, 'uploading image!')
+}
+
+
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
 
@@ -98,7 +103,7 @@ const randomOMaticVsBot = () => {
     callback({
       innerHTML: resultStats,
       pageNum: resultStats.match(/Page (\d+)/),
-      numResults: parseInt(resultStats.match(/bout (.*) results/)[1].replace(/,/g, '')),
+      numResults: parseInt(resultStats.match(/([\d\,]*) results/)[1].replace(/,/g, '')),
       timeSearch: resultStats.match(/(\d+.\d+) seconds/)
     });
   })
@@ -116,6 +121,12 @@ const randomOMaticVsBot = () => {
     // for (let i=0;i<20;i++) {
     for (let i=0;i<images.ids.length;i++) {
       id = images.ids[i]
+
+      if (id.constructor.name == 'Array') {
+        id = id[0]
+      }
+
+      console.log('processing >> ', id, urlSearch(id))
       dirNew = true
       // Check if exist directory with id.
       // Create directory, if exists.
@@ -156,7 +167,9 @@ const randomOMaticVsBot = () => {
         //Humanize the access to google
         await randomOMaticVsBot()
 
-        await driver.get(urlSearch(images.ids[i]));
+        await driver.get(urlSearch(id));
+        await awaitingUpload()
+
         nextPage = await getNextPage();
         resultStat = await getResultStats();
         querySearch = await getFirstSearchResults();
@@ -183,6 +196,8 @@ const randomOMaticVsBot = () => {
         await randomOMaticVsBot()
 
         await driver.get(nextPage);
+        await awaitingUpload()
+
         nextPage = await getNextPage();
         resultStat = await getResultStats();
         querySearch = await getSearchResults();
@@ -207,7 +222,7 @@ const randomOMaticVsBot = () => {
     // await driver.get('https://www.google.co.uk/search?biw=1366&bih=598&tbs=sbi:AMhZZitqDPGPMgf35iApBjdRi1xrs3m6zavV2D20fkF_1_1w6eQxYq0Lw435xk6NXxXMzG_1Fm681_1Gu_1BC9dxsstlVj5morb7HWXIfyuMMz_1MUE8eh1CW-4HxZ88Kl12XEl9Hx0wkLlVcCkMZuJYXyf9PoKPLQVQXJTqS3s1oXy5jBh5VQ8WrbkmqD-Bv5LxJHPjTl54QtR3vREmIVYaEjymZM_1jZLJViH_1CzNd1sOyUDRp6ypMF5dRlNT8Z0m-k7Kl7E6_1d2KciXnuOp-T97AHQQJfmOcbOipKB-dOVoLqODvmIZuKbmvYMH1oSzd6sD22TeB6HiY909UzeftFoy1md5BtK1uMRh7mQ&ei=UmlfWqPYNKHNgAan_YKYDg&start=10&sa=N');
     // await driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN);
 
-    console.timeEnd('twenty files')
+    console.timeEnd('The end!!')
     // console.log( await driver.findElement(By.id('rso')) );
     var n = images;
     // debugger
