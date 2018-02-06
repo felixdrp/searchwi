@@ -109,13 +109,13 @@ const awaitingUpload = () => {
   })
 
   let pagesMaxNum = 21;
-  let nextPage, numPage, resultStat, querySearch;
-  let id;
+  let nextPage, oldNextPage, numPage, resultStat, querySearch;
+  let id, urlFromId;
   // Tell if the directory is new.
   let dirNew = true;
   let ls, lastFileNumber, fileCheck;
 
-  console.time('twenty files')
+  console.time('all files')
 
   try {
     // for (let i=0;i<20;i++) {
@@ -126,7 +126,9 @@ const awaitingUpload = () => {
         id = id[0]
       }
 
-      console.log('processing >> ', id, urlSearch(id))
+      urlFromId = urlSearch(id)
+
+      console.log('processing >> ', id, urlFromId)
       dirNew = true
       // Check if exist directory with id.
       // Create directory, if exists.
@@ -153,8 +155,8 @@ const awaitingUpload = () => {
             }
             fileCheck = require(`./data/${id}/${ls[ls.length-1]}`)
             // debugger
-            // If no next page end
-            if (!fileCheck.nextPage) {
+            // If no next page end or num searchs > max number searchs.
+            if (!fileCheck.nextPage || ls.length >= pagesMaxNum) {
               console.log("next ID", id)
               continue
             }
@@ -167,7 +169,7 @@ const awaitingUpload = () => {
         //Humanize the access to google
         await randomOMaticVsBot()
 
-        await driver.get(urlSearch(id));
+        await driver.get(urlFromId);
         await awaitingUpload()
 
         nextPage = await getNextPage();
@@ -178,8 +180,11 @@ const awaitingUpload = () => {
           fs.writeFileSync(
             `./data/${id}/${id}-1.json`,
             JSON.stringify({
+              id: id,
+              title: images.data[id].title,
               date: new Date(),
               pageNum: 1,
+              url: urlFromId,
               querySearch,
               resultStat,
               nextPage
@@ -197,7 +202,7 @@ const awaitingUpload = () => {
 
         await driver.get(nextPage);
         await awaitingUpload()
-
+        oldNextPage = nextPage
         nextPage = await getNextPage();
         resultStat = await getResultStats();
         querySearch = await getSearchResults();
@@ -205,8 +210,14 @@ const awaitingUpload = () => {
           fs.writeFileSync(
             `./data/${id}/${id}-${parseInt(resultStat.pageNum[1])}.json`,
             JSON.stringify({
+              id: id,
+              title: images.data[id].title,
               date: new Date(),
               pageNum: parseInt(resultStat.pageNum[1]),
+              url: oldNextPage,
+              // querySearch: await getSearchResults(),
+              // resultStat: await getResultStats(),
+              // nextPage: await getNextPage()
               querySearch,
               resultStat,
               nextPage
@@ -222,7 +233,7 @@ const awaitingUpload = () => {
     // await driver.get('https://www.google.co.uk/search?biw=1366&bih=598&tbs=sbi:AMhZZitqDPGPMgf35iApBjdRi1xrs3m6zavV2D20fkF_1_1w6eQxYq0Lw435xk6NXxXMzG_1Fm681_1Gu_1BC9dxsstlVj5morb7HWXIfyuMMz_1MUE8eh1CW-4HxZ88Kl12XEl9Hx0wkLlVcCkMZuJYXyf9PoKPLQVQXJTqS3s1oXy5jBh5VQ8WrbkmqD-Bv5LxJHPjTl54QtR3vREmIVYaEjymZM_1jZLJViH_1CzNd1sOyUDRp6ypMF5dRlNT8Z0m-k7Kl7E6_1d2KciXnuOp-T97AHQQJfmOcbOipKB-dOVoLqODvmIZuKbmvYMH1oSzd6sD22TeB6HiY909UzeftFoy1md5BtK1uMRh7mQ&ei=UmlfWqPYNKHNgAan_YKYDg&start=10&sa=N');
     // await driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN);
 
-    console.timeEnd('The end!!')
+    console.timeEnd('all files')
     // console.log( await driver.findElement(By.id('rso')) );
     var n = images;
     // debugger
