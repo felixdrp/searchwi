@@ -8,7 +8,8 @@ const {Builder, By, Key, until} = require('selenium-webdriver');
 // Get url of the 1024px thumbnail image of an image id.
 const urlSearch = (id) => {
   let thumb = images.data[id].pageimages["0"].thumbnail.source
-  thumb = thumb.replace(/\d+px/, '1024px')
+  // thumb = thumb.replace(/\d+px/, '1024px')
+  thumb = thumb.replace(/\d+px/, '768px')
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
 
@@ -106,7 +107,8 @@ const urlSearch = (id) => {
   console.time('twenty files')
 
   try {
-    for (let i=0;i<20;i++) {
+    // for (let i=0;i<20;i++) {
+    for (let i=0;i<images.ids.length;i++) {
       id = images.ids[i]
       dirNew = true
       // Check if exist directory with id.
