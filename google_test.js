@@ -1,3 +1,5 @@
+const util = require('util');
+const setTimeoutPromise = util.promisify(setTimeout);
 
 const fs = require('fs');
 const images = require('./images-with-metadata.json');
@@ -12,6 +14,8 @@ const urlSearch = (id) => {
   thumb = thumb.replace(/\d+px/, '768px')
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
+// Randomiza Aleatoriza el tiempo de navegacion para saltar defensas anti bots.
+const randomOMaticVsBot = () => setTimeoutPromise(2e3 + Math.floor(Math.random()*2e3), 'next!')
 
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
@@ -147,6 +151,9 @@ const urlSearch = (id) => {
         }
       }
       if (dirNew) {
+        //Humanize the access to google
+        await randomOMaticVsBot()
+
         await driver.get(urlSearch(images.ids[i]));
         nextPage = await getNextPage();
         resultStat = await getResultStats();
@@ -170,6 +177,9 @@ const urlSearch = (id) => {
         // Save data to disk
       }
       while (nextPage && numPage < pagesMaxNum) {
+        //Humanize the access to google
+        await randomOMaticVsBot()
+
         await driver.get(nextPage);
         nextPage = await getNextPage();
         resultStat = await getResultStats();
