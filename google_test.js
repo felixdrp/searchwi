@@ -11,7 +11,8 @@ const {Builder, By, Key, until} = require('selenium-webdriver');
 const urlSearch = (id) => {
   let thumb = images.data[id].pageimages["0"].thumbnail.source
   // thumb = thumb.replace(/\d+px/, '1024px')
-  thumb = thumb.replace(/\d+px/, '768px')
+  // thumb = thumb.replace(/\d+px/, '768px')
+  thumb = thumb.replace(/\d+px/, '640px')
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
 // Randomiza Aleatoriza el tiempo de navegacion para saltar defensas anti bots.
@@ -97,6 +98,19 @@ const awaitingUpload = () => {
     }
   })
 
+  const noSearchMatch = () => driver.executeAsyncScript(function () {
+    var callback = arguments[arguments.length - 1];
+    var divMain = document.querySelector('#main');
+    var noSearchMatch = (/Your search did not match any documents/).test(divMain.textContent)
+    callback(noSearchMatch);
+  })
+
+  const existResultStats = () => driver.executeAsyncScript(function () {
+    var callback = arguments[arguments.length - 1];
+    var resultStats = document.querySelector('#resultStats');
+    callback(resultStats);
+  })
+
   const getResultStats = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
     var resultStats = document.querySelector('#resultStats').innerHTML;
@@ -172,9 +186,20 @@ const awaitingUpload = () => {
         await driver.get(urlFromId);
         await awaitingUpload()
 
-        nextPage = await getNextPage();
-        resultStat = await getResultStats();
-        querySearch = await getFirstSearchResults();
+        // nextPage = await getNextPage();
+        // resultStat = await getResultStats();
+        // querySearch = await getFirstSearchResults();
+
+        if (await noSearchMatch()) {
+          nextPage = null;
+          resultStat = null;
+          querySearch = null;
+        } else {
+          nextPage = await getNextPage();
+          resultStat = await getResultStats();
+          querySearch = await getFirstSearchResults();
+        }
+
         numPage = 1
         try {
           fs.writeFileSync(
@@ -203,9 +228,19 @@ const awaitingUpload = () => {
         await driver.get(nextPage);
         await awaitingUpload()
         oldNextPage = nextPage
-        nextPage = await getNextPage();
-        resultStat = await getResultStats();
-        querySearch = await getSearchResults();
+
+        console.log('await existResultStats()')
+        console.log(await existResultStats())
+        if (await existResultStats()) {
+          nextPage = await getNextPage();
+          resultStat = await getResultStats();
+          querySearch = await getSearchResults();
+        } else {
+          nextPage = null;
+          resultStat = null;
+          querySearch = null;
+        }
+
         try {
           fs.writeFileSync(
             `./data/${id}/${id}-${parseInt(resultStat.pageNum[1])}.json`,
