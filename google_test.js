@@ -31,22 +31,34 @@ const awaitingUpload = () => {
   const getFirstSearchResults = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
     var a = document.querySelector('#rso');
+    // if class rso is used
+    var rso = document.querySelectorAll('.srg')
     var g = document.querySelectorAll('#rso>div:last-child .g')
     var elementOverLastChildren = a.children[a.childElementCount - 2];
     var elements = [];
-    var url, urlmatch;
     if (a.childElementCount > 2) {
       for (let i of g) {
+        let url, urlmatch, urlGreen, abstract
+        let innerChildrenCount = i.children[0].children[0].children[1].childElementCount
         url = i.children[0].children[0].children[0].children[0].href
         urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
         if (urlmatch >= 2) {
           url = decodeURIComponent(url[2])
         }
+        // Check if search line has image.
+        if (i.children[0].children[0].children[1].childElementCount > 1) {
+          urlGreen = i.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
+          abstract = i.children[0].children[0].children[1].children[1].children[1].innerText
+        } else {
+          urlGreen = i.children[0].children[0].children[1].children[0].children[0].innerText,
+          abstract = i.children[0].children[0].children[1].children[0].children[1].innerText
+        }
+
         elements.push({
           title: i.children[0].children[0].children[0].children[0].innerText,
           url: url,
-          urlGreen: i.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-          abstract: i.children[0].children[0].children[1].children[1].children[1].innerText
+          urlGreen: urlGreen,
+          abstract: abstract
         })
       }
     }
@@ -63,20 +75,29 @@ const awaitingUpload = () => {
     var g = document.querySelectorAll('#rso>div:last-child .g')
     var elementOverLastChildren = a.children[a.childElementCount - 2];
     var elements = [];
-    var url, urlmatch;
 
     if (a.childElementCount > 2) {
       for (let n of g) {
+        let url, urlmatch, urlGreen, abstract
         url = n.children[0].children[0].children[0].children[0].href
         urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
         if (urlmatch >= 2) {
           url = decodeURIComponent(url[2])
         }
+        // Check if search line has image.
+        if (n.children[0].children[0].children[1].childElementCount > 1) {
+          urlGreen = n.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
+          abstract = n.children[0].children[0].children[1].children[1].children[1].innerText
+        } else {
+          urlGreen = n.children[0].children[0].children[1].children[0].children[0].innerText,
+          abstract = n.children[0].children[0].children[1].children[0].children[1].innerText
+        }
+
         elements.push({
           title: n.children[0].children[0].children[0].children[0].innerText,
           url: url,
-          urlGreen: n.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-          abstract: n.children[0].children[0].children[1].children[1].children[1].innerText
+          urlGreen: urlGreen,
+          abstract: abstract
         })
       }
     }
@@ -162,15 +183,15 @@ const awaitingUpload = () => {
           // Has it files?
           if (ls.length > 0) {
             dirNew = false
-            lastFileNumber = ls[ls.length-1].match(/(\d+).json$/)[1]
-            lastFileNumber = parseInt(lastFileNumber)
-            if (lastFileNumber == pagesMaxNum - 1) {
+            // No checked if contains a extrange file!!!!!
+            lastFileNumber = ls.length
+            if (lastFileNumber == pagesMaxNum - 1 || ls.length >= pagesMaxNum) {
               continue
             }
-            fileCheck = require(`./data/${id}/${ls[ls.length-1]}`)
+            fileCheck = require(`./data/${id}/${id}-${lastFileNumber}.json`)
             // debugger
             // If no next page end or num searchs > max number searchs.
-            if (!fileCheck.nextPage || ls.length >= pagesMaxNum) {
+            if (!fileCheck.nextPage) {
               console.log("next ID", id)
               continue
             }
@@ -235,6 +256,13 @@ const awaitingUpload = () => {
           nextPage = await getNextPage();
           resultStat = await getResultStats();
           querySearch = await getSearchResults();
+        } else if (await noSearchMatch()) {
+          nextPage = null;
+          resultStat = {
+            search: 'No Search Match',
+            pageNum: [ numPage + 1, numPage + 1 ]
+          };
+          querySearch = 'No Search Match';
         } else {
           nextPage = null;
           resultStat = null;
