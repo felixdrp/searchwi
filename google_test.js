@@ -4,6 +4,35 @@ const setTimeoutPromise = util.promisify(setTimeout);
 const fs = require('fs');
 const images = require('./images-with-metadata.json');
 
+// var { getWikiMediaData } = require('./wikimedia-api');
+// // Function to restore the metadata of an id
+// (async function() {
+//   let key = 16351320
+//   let metadata = await getWikiMediaData(key)
+//   const title = metadata.imageInfo["0"].title
+//   debugger
+//   images.titles.splice(
+//     images.findIndex((oldTitle) => oldTitle == images.data[key].title),
+//     1
+//   )
+//   delete images.titleToId[images.data[key].title]
+//   images.data[key] = { ...images.data[key], ...metadata }
+//   images.data[key].title = title
+//   images.titles.push(title)
+//   images.titleToId[title] = key
+//
+//
+//   const fileName = 'images-with-metadata.json'
+//   debugger
+//   fs.writeFile(fileName, JSON.stringify(images), (err) => {
+//     // throws an error, you could also catch it here
+//     if (err) throw err;
+//     // success case, the file was saved
+//     console.log('10K images with metadata saved!');
+//   });
+// })()
+
+
 require('geckodriver');
 const {Builder, By, Key, until} = require('selenium-webdriver');
 
@@ -12,7 +41,9 @@ const urlSearch = (id) => {
   let thumb = images.data[id].pageimages["0"].thumbnail.source
   // thumb = thumb.replace(/\d+px/, '1024px')
   // thumb = thumb.replace(/\d+px/, '768px')
-  thumb = thumb.replace(/\d+px/, '640px')
+  // thumb = thumb.replace(/\d+px/, '640px')
+  thumb = thumb.replace(/\d+px/, '512px')
+  thumb = encodeURIComponent(thumb)
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
 // Randomiza Aleatoriza el tiempo de navegacion para saltar defensas anti bots.
@@ -24,9 +55,31 @@ const awaitingUpload = () => {
   return setTimeoutPromise(500, 'uploading image!')
 }
 
-
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
+  // Load a page with 3 tries in case of image too big.
+  async function loadSpecial(url) {
+    const imageTooBigOrNetworkSlow = () => driver.executeAsyncScript(function () {
+      var callback = arguments[arguments.length - 1];
+      // Check if image to big
+      var divMain = document.querySelector('#main');
+      let imageTooBigOrNetworkSlow = (/The image is too big or the network connection is too slow to download it/).test(divMain.textContent)
+      callback(imageTooBigOrNetworkSlow);
+    })
+    let maxTries = 3
+    let i = 0
+    do {
+      if (i >= 1) {
+        await setTimeoutPromise(5000, 'Await some time to rest the network.')
+      }
+
+      //Humanize the access to google
+      await randomOMaticVsBot()
+      await driver.get(url);
+      await awaitingUpload()
+      i += 1
+    } while(await imageTooBigOrNetworkSlow() &&  i < maxTries)
+  }
 
   const getFirstSearchResults = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
@@ -36,7 +89,14 @@ const awaitingUpload = () => {
     var g = document.querySelectorAll('#rso>div:last-child .g')
     var elementOverLastChildren = a.children[a.childElementCount - 2];
     var elements = [];
-    if (a.childElementCount > 2) {
+    if (
+      a.childElementCount == 3 &&
+      a.children[0].className == 'normal-header' &&
+      a.children[1].className == '_NId' &&
+      a.children[1].className == a.children[2].className
+    ) {
+      // do nothing
+    } else if (a.childElementCount > 2) {
       for (let i of g) {
         let url, urlmatch, urlGreen, abstract
         let innerChildrenCount = i.children[0].children[0].children[1].childElementCount
@@ -47,11 +107,19 @@ const awaitingUpload = () => {
         }
         // Check if search line has image.
         if (i.children[0].children[0].children[1].childElementCount > 1) {
-          urlGreen = i.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-          abstract = i.children[0].children[0].children[1].children[1].children[1].innerText
+          urlGreen = i.children[0].children[0].children[1].children[1].children[0]?
+            i.children[0].children[0].children[1].children[1].children[0].children[0].innerText:
+            '',
+          abstract = i.children[0].children[0].children[1].children[1].children[1]?
+            i.children[0].children[0].children[1].children[1].children[1].innerText:
+            ''
         } else {
-          urlGreen = i.children[0].children[0].children[1].children[0].children[0].innerText,
-          abstract = i.children[0].children[0].children[1].children[0].children[1].innerText
+          urlGreen = i.children[0].children[0].children[1].children[0].children[0]?
+            i.children[0].children[0].children[1].children[0].children[0].innerText:
+            ''
+          abstract = i.children[0].children[0].children[1].children[0].children[1]?
+            i.children[0].children[0].children[1].children[0].children[1].innerText:
+            ''
         }
 
         elements.push({
@@ -71,36 +139,49 @@ const awaitingUpload = () => {
 
   const getSearchResults = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
-    var a = document.querySelector('#rso');
-    var g = document.querySelectorAll('#rso>div:last-child .g')
-    var elementOverLastChildren = a.children[a.childElementCount - 2];
-    var elements = [];
+    try {
+      var a = document.querySelector('#rso');
+      var g = document.querySelectorAll('#rso>div:last-child .g')
+      var elementOverLastChildren = a.children[a.childElementCount - 2];
+      var elements = [];
 
-    if (a.childElementCount > 2) {
-      for (let n of g) {
-        let url, urlmatch, urlGreen, abstract
-        url = n.children[0].children[0].children[0].children[0].href
-        urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
-        if (urlmatch >= 2) {
-          url = decodeURIComponent(url[2])
-        }
-        // Check if search line has image.
-        if (n.children[0].children[0].children[1].childElementCount > 1) {
-          urlGreen = n.children[0].children[0].children[1].children[1].children[0].children[0].innerText,
-          abstract = n.children[0].children[0].children[1].children[1].children[1].innerText
-        } else {
-          urlGreen = n.children[0].children[0].children[1].children[0].children[0].innerText,
-          abstract = n.children[0].children[0].children[1].children[0].children[1].innerText
-        }
+      if (a.childElementCount == 1 || a.childElementCount > 2) {
+        for (let n of g) {
+          let url, urlmatch, urlGreen, abstract
+          url = n.children[0].children[0].children[0].children[0].href
+          urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
+          if (urlmatch >= 2) {
+            url = decodeURIComponent(url[2])
+          }
+          // Check if search line has image.
+          if (n.children[0].children[0].children[1].childElementCount > 1) {
+            urlGreen = n.children[0].children[0].children[1].children[1].children[0]?
+              n.children[0].children[0].children[1].children[1].children[0].children[0].innerText:
+              '',
+            abstract = n.children[0].children[0].children[1].children[1].children[1]?
+              n.children[0].children[0].children[1].children[1].children[1].innerText:
+              ''
+          } else {
+            urlGreen = n.children[0].children[0].children[1].children[0].children[0]?
+              n.children[0].children[0].children[1].children[0].children[0].innerText:
+              ''
+            abstract = n.children[0].children[0].children[1].children[0].children[1]?
+              n.children[0].children[0].children[1].children[0].children[1].innerText:
+              ''
+          }
 
-        elements.push({
-          title: n.children[0].children[0].children[0].children[0].innerText,
-          url: url,
-          urlGreen: urlGreen,
-          abstract: abstract
-        })
+          elements.push({
+            title: n.children[0].children[0].children[0].children[0].innerText,
+            url: url,
+            urlGreen: urlGreen,
+            abstract: abstract
+          })
+        }
       }
+    } catch(e) {
+      console.error(e, 'getSearchResults')
     }
+
     callback({
       searchRaw: a.innerHTML,
       results: elements
@@ -128,17 +209,38 @@ const awaitingUpload = () => {
 
   const existResultStats = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
+
+    // Check it is not a update image error.
+    var divMain = document.querySelector('#main');
+    var imageURLnotPublicAccessible = (/The URL doesn\'t refer to an image or the image is not publicly accessible/).test(divMain.textContent)
+    if (imageURLnotPublicAccessible) {
+      console.error("The URL doesn't refer to an image or the image is not publicly accessible")
+      throw new Error("The URL doesn't refer to an image or the image is not publicly accessible")
+    }
+
+    var imageTooBigOrNetworkSlos = (/The image is too big or the network connection is too slow to download it/).test(divMain.textContent)
+    if (imageTooBigOrNetworkSlos) {
+      console.error("The image is too big or the network connection is too slow to download it.")
+      throw new Error("The image is too big or the network connection is too slow to download it.")
+    }
+
     var resultStats = document.querySelector('#resultStats');
+
     callback(resultStats);
   })
 
   const getResultStats = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
-    var resultStats = document.querySelector('#resultStats').innerHTML;
+    try {
+      var resultStats = document.querySelector('#resultStats').innerHTML;
+    } catch(e) {
+      console.error(e, 'getResultStats')
+    }
+
     callback({
       innerHTML: resultStats,
       pageNum: resultStats.match(/Page (\d+)/),
-      numResults: parseInt(resultStats.match(/([\d\,]*) results/)[1].replace(/,/g, '')),
+      numResults: parseInt(resultStats.match(/([\d\,]*) result/)[1].replace(/,/g, '')),
       timeSearch: resultStats.match(/(\d+.\d+) seconds/)
     });
   })
@@ -163,7 +265,7 @@ const awaitingUpload = () => {
 
       urlFromId = urlSearch(id)
 
-      console.log('processing >> ', id, urlFromId)
+      console.log('processing >> ', id, urlFromId, images.data[id].pageimages["0"].thumbnail.source)
       dirNew = true
       // Check if exist directory with id.
       // Create directory, if exists.
@@ -201,17 +303,12 @@ const awaitingUpload = () => {
         }
       }
       if (dirNew) {
-        //Humanize the access to google
-        await randomOMaticVsBot()
+        await loadSpecial(urlFromId)
 
-        await driver.get(urlFromId);
-        await awaitingUpload()
-
-        // nextPage = await getNextPage();
-        // resultStat = await getResultStats();
-        // querySearch = await getFirstSearchResults();
-
-        if (await noSearchMatch()) {
+        if (
+          await noSearchMatch() ||
+          !(await existResultStats())
+        ) {
           nextPage = null;
           resultStat = null;
           querySearch = null;
@@ -243,11 +340,8 @@ const awaitingUpload = () => {
         // Save data to disk
       }
       while (nextPage && numPage < pagesMaxNum) {
-        //Humanize the access to google
-        await randomOMaticVsBot()
+        await loadSpecial(nextPage)
 
-        await driver.get(nextPage);
-        await awaitingUpload()
         oldNextPage = nextPage
 
         console.log('await existResultStats()')
