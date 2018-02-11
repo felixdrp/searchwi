@@ -4,45 +4,96 @@ const setTimeoutPromise = util.promisify(setTimeout);
 const fs = require('fs');
 const images = require('./images-with-metadata.json');
 
-// var { getWikiMediaData } = require('./wikimedia-api');
-// // Function to restore the metadata of an id
-// (async function() {
-//   let key = 16351320
-//   let metadata = await getWikiMediaData(key)
-//   const title = metadata.imageInfo["0"].title
-//   debugger
-//   images.titles.splice(
-//     images.findIndex((oldTitle) => oldTitle == images.data[key].title),
-//     1
-//   )
-//   delete images.titleToId[images.data[key].title]
-//   images.data[key] = { ...images.data[key], ...metadata }
-//   images.data[key].title = title
-//   images.titles.push(title)
-//   images.titleToId[title] = key
-//
-//
-//   const fileName = 'images-with-metadata.json'
-//   debugger
-//   fs.writeFile(fileName, JSON.stringify(images), (err) => {
-//     // throws an error, you could also catch it here
-//     if (err) throw err;
-//     // success case, the file was saved
-//     console.log('10K images with metadata saved!');
-//   });
-// })()
+var { getWikiMediaData } = require('./wikimedia-api');
+// Function to restore the metadata of an id
+(async function() {
+  // Error metadata changed
+  // ids
+  // ========
+  // 16351320
+  // 3658179
+
+  // Error deleted!! "missing" image from wikimedia
+  // id removed from the DB
+  // 34326222
+  // 49274179
+  // 55111196
+  // 60033899
+  // 60444039
+  // 60753872, 61452099, 64912293, 65020961, 65020961, 65173698
+
+  // Added
+  // id 65110016, 43713031, 58276382, 15720487, 15018613, 45765842, 46551356, 15378706
+  // 57565421, 38364158
+
+  // added, edited
+  let key = 38364158
+  // removed
+  let idWillDeleted = false
+
+  let metadata = await getWikiMediaData(key)
+  const title = metadata.imageInfo["0"].title
+  debugger
+
+  // Delete completely an image
+  function deleteImageFromDB(idToDelete) {
+    images.ids.splice(
+      images.ids.findIndex((id) => id == idToDelete),
+      1
+    )
+    images.titles.splice(
+      images.titles.findIndex((oldTitle) => oldTitle == images.data[idToDelete].title),
+      1
+    )
+    delete images.titleToId[images.data[idToDelete].title]
+    delete images.data[idToDelete]
+    // Add the new Id to the ids array
+    images.ids.push([key])
+  }
+  if (idWillDeleted) {
+    deleteImageFromDB(idWillDeleted)
+  } else {
+    // // Delete old metadata
+    images.titles.splice(
+      images.titles.findIndex((oldTitle) => oldTitle == images.data[key].title),
+      1
+    )
+    delete images.titleToId[images.data[key].title]
+  }
+
+  // Add new metadata
+  images.data[key] = { ...images.data[key], ...metadata }
+  images.data[key].title = title
+  images.titles.push(title)
+  images.titleToId[title] = key
+
+  const fileName = 'images-with-metadata.json'
+  debugger
+  fs.writeFile(fileName, JSON.stringify(images), (err) => {
+    // throws an error, you could also catch it here
+    if (err) throw err;
+    // success case, the file was saved
+    console.log('10K images with metadata saved!');
+  });
+})()
 
 
 require('geckodriver');
 const {Builder, By, Key, until} = require('selenium-webdriver');
 
 // Get url of the 1024px thumbnail image of an image id.
-const urlSearch = (id) => {
+const urlSearch = (id, size) => {
   let thumb = images.data[id].pageimages["0"].thumbnail.source
-  // thumb = thumb.replace(/\d+px/, '1024px')
-  // thumb = thumb.replace(/\d+px/, '768px')
-  // thumb = thumb.replace(/\d+px/, '640px')
-  thumb = thumb.replace(/\d+px/, '512px')
+  if (size) {
+    thumb = thumb.replace(/\d+px/, size + 'px')
+  } else {
+    // thumb = thumb.replace(/\d+px/, '1024px')
+    // thumb = thumb.replace(/\d+px/, '768px')
+    // thumb = thumb.replace(/\d+px/, '640px')
+    // thumb = thumb.replace(/\d+px/, '512px')
+    thumb = thumb.replace(/\d+px/, '256px')
+  }
+  thumb = encodeURIComponent(thumb)
   thumb = encodeURIComponent(thumb)
   return `https://www.google.co.uk/searchbyimage?image_url=${thumb}&btnG=Search+by+image&encoded_image=&image_content=&filename=&hl=en-GB`
 }
@@ -58,7 +109,7 @@ const awaitingUpload = () => {
 (async function example() {
   let driver = await new Builder().forBrowser('firefox').build();
   // Load a page with 3 tries in case of image too big.
-  async function loadSpecial(url) {
+  async function loadSpecial(url, id) {
     const imageTooBigOrNetworkSlow = () => driver.executeAsyncScript(function () {
       var callback = arguments[arguments.length - 1];
       // Check if image to big
@@ -69,66 +120,80 @@ const awaitingUpload = () => {
     let maxTries = 3
     let i = 0
     do {
-      if (i >= 1) {
-        await setTimeoutPromise(5000, 'Await some time to rest the network.')
-      }
-
       //Humanize the access to google
       await randomOMaticVsBot()
-      await driver.get(url);
+      if (i >= 1) {
+        await setTimeoutPromise(5000, 'Await some time to rest the network.')
+        // try with 128 and 64 px
+        await driver.get(urlSearch(id, 64*(3-i)));
+      } else {
+        await driver.get(url);
+      }
       await awaitingUpload()
+
       i += 1
     } while(await imageTooBigOrNetworkSlow() &&  i < maxTries)
   }
 
   const getFirstSearchResults = () => driver.executeAsyncScript(function () {
     var callback = arguments[arguments.length - 1];
-    var a = document.querySelector('#rso');
-    // if class rso is used
-    var rso = document.querySelectorAll('.srg')
-    var g = document.querySelectorAll('#rso>div:last-child .g')
-    var elementOverLastChildren = a.children[a.childElementCount - 2];
-    var elements = [];
-    if (
-      a.childElementCount == 3 &&
-      a.children[0].className == 'normal-header' &&
-      a.children[1].className == '_NId' &&
-      a.children[1].className == a.children[2].className
-    ) {
-      // do nothing
-    } else if (a.childElementCount > 2) {
-      for (let i of g) {
-        let url, urlmatch, urlGreen, abstract
-        let innerChildrenCount = i.children[0].children[0].children[1].childElementCount
-        url = i.children[0].children[0].children[0].children[0].href
-        urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
-        if (urlmatch >= 2) {
-          url = decodeURIComponent(url[2])
-        }
-        // Check if search line has image.
-        if (i.children[0].children[0].children[1].childElementCount > 1) {
-          urlGreen = i.children[0].children[0].children[1].children[1].children[0]?
-            i.children[0].children[0].children[1].children[1].children[0].children[0].innerText:
-            '',
-          abstract = i.children[0].children[0].children[1].children[1].children[1]?
-            i.children[0].children[0].children[1].children[1].children[1].innerText:
-            ''
-        } else {
-          urlGreen = i.children[0].children[0].children[1].children[0].children[0]?
-            i.children[0].children[0].children[1].children[0].children[0].innerText:
-            ''
-          abstract = i.children[0].children[0].children[1].children[0].children[1]?
-            i.children[0].children[0].children[1].children[0].children[1].innerText:
-            ''
-        }
+    try {
+      var a = document.querySelector('#rso');
+      // if class rso is used
+      var rso = document.querySelectorAll('.srg')
+      var g = document.querySelectorAll('#rso>div:last-child .g')
+      var elementOverLastChildren = a.children[a.childElementCount - 2];
+      var elements = [];
+      if (
+        a.childElementCount == 3 &&
+        a.children[0].className == 'normal-header' &&
+        a.children[1].className == '_NId' &&
+        a.children[1].className == a.children[2].className
+      ) {
+        // do nothing
+      } else if (a.childElementCount > 2) {
+        for (let i of g) {
+          let url, urlmatch, urlGreen, abstract
+          let innerChildrenCount = i.children[0].children[0].children[1].childElementCount
 
-        elements.push({
-          title: i.children[0].children[0].children[0].children[0].innerText,
-          url: url,
-          urlGreen: urlGreen,
-          abstract: abstract
-        })
+          // Check it is a hyperlink <a> with href
+          for (let h of i.children[0].children[0].children[0].children) {
+            if (h.tagName == 'A') {
+              url = h.href
+              break
+            }
+          }
+          urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
+          if (urlmatch >= 2) {
+            url = decodeURIComponent(url[2])
+          }
+          // Check if search line has image.
+          if (i.children[0].children[0].children[1].childElementCount > 1) {
+            urlGreen = i.children[0].children[0].children[1].children[1].children[0]?
+              i.children[0].children[0].children[1].children[1].children[0].children[0].innerText:
+              '',
+            abstract = i.children[0].children[0].children[1].children[1].children[1]?
+              i.children[0].children[0].children[1].children[1].children[1].innerText:
+              ''
+          } else {
+            urlGreen = i.children[0].children[0].children[1].children[0].children[0]?
+              i.children[0].children[0].children[1].children[0].children[0].innerText:
+              ''
+            abstract = i.children[0].children[0].children[1].children[0].children[1]?
+              i.children[0].children[0].children[1].children[0].children[1].innerText:
+              ''
+          }
+
+          elements.push({
+            title: i.children[0].children[0].children[0].innerText,
+            url: url,
+            urlGreen: urlGreen,
+            abstract: abstract
+          })
+        }
       }
+    } catch(e) {
+      console.error(e, 'getFirstSearchResults')
     }
 
     callback({
@@ -148,7 +213,13 @@ const awaitingUpload = () => {
       if (a.childElementCount == 1 || a.childElementCount > 2) {
         for (let n of g) {
           let url, urlmatch, urlGreen, abstract
-          url = n.children[0].children[0].children[0].children[0].href
+          // Check it is a hyperlink <a> with href
+          for (let h of n.children[0].children[0].children[0].children) {
+            if (h.tagName == 'A') {
+              url = h.href
+              break
+            }
+          }
           urlmatch = url.match(/^https:\/\/www.google.*(&url=)(.*)(?:\&)/)
           if (urlmatch >= 2) {
             url = decodeURIComponent(url[2])
@@ -171,7 +242,7 @@ const awaitingUpload = () => {
           }
 
           elements.push({
-            title: n.children[0].children[0].children[0].children[0].innerText,
+            title: n.children[0].children[0].children[0].innerText,
             url: url,
             urlGreen: urlGreen,
             abstract: abstract
@@ -303,7 +374,7 @@ const awaitingUpload = () => {
         }
       }
       if (dirNew) {
-        await loadSpecial(urlFromId)
+        await loadSpecial(urlFromId, id)
 
         if (
           await noSearchMatch() ||
@@ -317,7 +388,7 @@ const awaitingUpload = () => {
           resultStat = await getResultStats();
           querySearch = await getFirstSearchResults();
         }
-
+        // debugger
         numPage = 1
         try {
           fs.writeFileSync(
