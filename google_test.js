@@ -4,78 +4,78 @@ const setTimeoutPromise = util.promisify(setTimeout);
 const fs = require('fs');
 const images = require('./images-with-metadata.json');
 
-var { getWikiMediaData } = require('./wikimedia-api');
-// Function to restore the metadata of an id
-(async function() {
-  // Error metadata changed
-  // ids
-  // ========
-  // 16351320
-  // 3658179
-
-  // Error deleted!! "missing" image from wikimedia
-  // id removed from the DB
-  // 34326222
-  // 49274179
-  // 55111196
-  // 60033899
-  // 60444039
-  // 60753872, 61452099, 64912293, 65020961, 65020961, 65173698
-
-  // Added
-  // id 65110016, 43713031, 58276382, 15720487, 15018613, 45765842, 46551356, 15378706
-  // 57565421, 38364158
-
-  // added, edited
-  let key = 38364158
-  // removed
-  let idWillDeleted = false
-
-  let metadata = await getWikiMediaData(key)
-  const title = metadata.imageInfo["0"].title
-  debugger
-
-  // Delete completely an image
-  function deleteImageFromDB(idToDelete) {
-    images.ids.splice(
-      images.ids.findIndex((id) => id == idToDelete),
-      1
-    )
-    images.titles.splice(
-      images.titles.findIndex((oldTitle) => oldTitle == images.data[idToDelete].title),
-      1
-    )
-    delete images.titleToId[images.data[idToDelete].title]
-    delete images.data[idToDelete]
-    // Add the new Id to the ids array
-    images.ids.push([key])
-  }
-  if (idWillDeleted) {
-    deleteImageFromDB(idWillDeleted)
-  } else {
-    // // Delete old metadata
-    images.titles.splice(
-      images.titles.findIndex((oldTitle) => oldTitle == images.data[key].title),
-      1
-    )
-    delete images.titleToId[images.data[key].title]
-  }
-
-  // Add new metadata
-  images.data[key] = { ...images.data[key], ...metadata }
-  images.data[key].title = title
-  images.titles.push(title)
-  images.titleToId[title] = key
-
-  const fileName = 'images-with-metadata.json'
-  debugger
-  fs.writeFile(fileName, JSON.stringify(images), (err) => {
-    // throws an error, you could also catch it here
-    if (err) throw err;
-    // success case, the file was saved
-    console.log('10K images with metadata saved!');
-  });
-})()
+// var { getWikiMediaData } = require('./wikimedia-api');
+// // Function to restore the metadata of an id
+// (async function() {
+//   // Error metadata changed
+//   // ids
+//   // ========
+//   // 16351320
+//   // 3658179
+//
+//   // Error deleted!! "missing" image from wikimedia
+//   // id removed from the DB
+//   // 34326222
+//   // 49274179
+//   // 55111196
+//   // 60033899
+//   // 60444039
+//   // 60753872, 61452099, 64912293, 65020961, 65020961, 65173698
+//
+//   // Added
+//   // id 65110016, 43713031, 58276382, 15720487, 15018613, 45765842, 46551356, 15378706
+//   // 57565421, 38364158
+//
+//   // added, edited
+//   let key = 38364158
+//   // removed
+//   let idWillDeleted = false
+//
+//   let metadata = await getWikiMediaData(key)
+//   const title = metadata.imageInfo["0"].title
+//   debugger
+//
+//   // Delete completely an image
+//   function deleteImageFromDB(idToDelete) {
+//     images.ids.splice(
+//       images.ids.findIndex((id) => id == idToDelete),
+//       1
+//     )
+//     images.titles.splice(
+//       images.titles.findIndex((oldTitle) => oldTitle == images.data[idToDelete].title),
+//       1
+//     )
+//     delete images.titleToId[images.data[idToDelete].title]
+//     delete images.data[idToDelete]
+//     // Add the new Id to the ids array
+//     images.ids.push([key])
+//   }
+//   if (idWillDeleted) {
+//     deleteImageFromDB(idWillDeleted)
+//   } else {
+//     // // Delete old metadata
+//     images.titles.splice(
+//       images.titles.findIndex((oldTitle) => oldTitle == images.data[key].title),
+//       1
+//     )
+//     delete images.titleToId[images.data[key].title]
+//   }
+//
+//   // Add new metadata
+//   images.data[key] = { ...images.data[key], ...metadata }
+//   images.data[key].title = title
+//   images.titles.push(title)
+//   images.titleToId[title] = key
+//
+//   const fileName = 'images-with-metadata.json'
+//   debugger
+//   fs.writeFile(fileName, JSON.stringify(images), (err) => {
+//     // throws an error, you could also catch it here
+//     if (err) throw err;
+//     // success case, the file was saved
+//     console.log('10K images with metadata saved!');
+//   });
+// })()
 
 
 require('geckodriver');
