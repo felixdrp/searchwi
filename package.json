@@ -18,6 +18,7 @@
   "homepage": "https://github.com/felixdrp/searchwi#readme",
   "dependencies": {
     "geckodriver": "^1.10.0",
+    "parse-domain": "^2.0.0",
     "selenium-webdriver": "^4.0.0-alpha.1"
   }
 }
