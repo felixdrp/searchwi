@@ -8,6 +8,8 @@ const parseDomain = require('parse-domain');
 
 const CSV_FILE_NAME = 'images-search-results.csv';
 const header = require('./csv/images-google-search-header.js');
+const {euTLD, generalTLD} = require('./csv/domains.js');
+
 
 const toCSVStringFormat = (stg) => `"${stg.replace(/\"/g, '""')}"`;
 const checkIfExist = (key) => {return key? key.value: ''};
@@ -20,8 +22,8 @@ console.time('all files');
       // CSV header
       header.CSV_HEADER.join(',')
     ]
-    for (let i=0;i<2;i++) {
-    // for (let i=0;i<images.ids.length;i++) {
+    // for (let i=0;i<2;i++) {
+    for (let i=0;i<images.ids.length;i++) {
       let id = images.ids[i][0]
 
       const readGoogleSearchInfo = async () => {
@@ -47,8 +49,8 @@ console.time('all files');
           csvLineObj[header.TOP_LEVEL_DOMAIN] = domain.tld
           csvLineObj[header.SUB_DOMAIN] = domain.subdomain
           csvLineObj[header.DOMAIN] = domain.domain
-          csvLineObj[header.UE_DOMAIN] = images.data[id].imageInfo["0"].imageinfo["0"].width
-          csvLineObj[header.GENERAL_DOMAIN] = images.data[id].imageInfo["0"].imageinfo["0"].width
+          csvLineObj[header.UE_DOMAIN] = euTLD.indexOf(domain.tld) != -1
+          csvLineObj[header.GENERAL_DOMAIN] = generalTLD.indexOf(domain.tld) != -1
 
           for (let title of header.CSV_HEADER) {
             csvLine.push(csvLineObj[title])
@@ -67,13 +69,15 @@ console.time('all files');
               rank += 1
             }
           } catch (err) {
-            console.log('ERROR:', err);
-            console.log('ERROR on ID:', id);
-            debugger
+            // console.log('ERROR:', err);
+            // console.log('ERROR on ID:', id);
+            // debugger
+            console.log('Processed ID:', id);
             fileData = false
           }
           fileNumber += 1
         } while (fileData)
+        return id
       }
 
       if (i % 100 == 0) {
