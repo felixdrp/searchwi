@@ -2,6 +2,7 @@
 const titles = {
   ID: 'id',
   TITLE: 'title',
+  DATE_TIME: 'date time',
   URL: 'url',
   METADATA_GLOBAL_USAGE_COUNT: 'meta_globalusage_count',
   GOOGLE_IMAGE_SEARCH_HIT_COUNT: 'google_image_search_hit_count',
@@ -28,6 +29,7 @@ const titles = {
 const CSV_HEADER = [
   titles.ID,
   titles.TITLE,
+  titles.DATE_TIME,
   titles.URL,
   titles.METADATA_GLOBAL_USAGE_COUNT,
   titles.GOOGLE_IMAGE_SEARCH_HIT_COUNT,

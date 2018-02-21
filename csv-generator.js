@@ -33,6 +33,8 @@ console.time('all files');
             csvLineObj[header.ID] = id
             // Image Title
             csvLineObj[header.TITLE] = toCSVStringFormat(images.data[id].title.slice(5))
+            // Image Date
+            csvLineObj[header.DATE_TIME] = toCSVStringFormat(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.DateTime.value)
             // Image URL
             csvLineObj[header.URL] = toCSVStringFormat(
               images.data[id].imageInfo["0"].imageinfo["0"].descriptionurl
