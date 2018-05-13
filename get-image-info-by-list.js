@@ -4,9 +4,17 @@
 var { getWikiMediaData } = require('./wikimedia-api');
 
 const fs = require('fs');
-const fileName = 'media-object.json'
+// const fileName = './data-seeds/quality-destiled-filtered-images-info-object.json'
+// const fileName = './data-seeds/valued-destiled-filtered-images-info-object.json'
+const fileName = './data-seeds/qualityValued-destiled-filtered-images-info-object.json'
 
-var images = require('./random-images.json')
+const mainSeed = require('./data-seeds/main-seed-filtered.json')
+var images = [
+  // ...mainSeed.qualityDestiled,
+  // ...mainSeed.valuedDestiled,
+  ...mainSeed.valuedQualityDestiled,
+]
+
 var media = {
   // data indexed by ids
   data: {},
@@ -17,38 +25,6 @@ var media = {
   titles: []
 }
 
-// Total number of random media
-const numberMedias = 11000
-
-// Data conditioning
-if (!images.ids) {
-  // Create media id index array at media.ids
-  // Populate media.data with the info linked by ids. Ex media.data[id].data
-  for (let key of images.random) {
-    media.data[key.id] = key
-    media.ids.push(key.id)
-    // add the name with the wikimedia data.
-    // media.names.push(key.id)
-    // :-) Check limit
-    // if (media.ids.length > 1) {
-    //   break
-    // }
-  }
-  media.ids.sort()
-  media.names.sort()
-}
-
-// Check if it is any id repeated.
-const repeatedIds = media.ids.reduce((s, v, i) => {
-  if (i < media.ids.length - 1) {
-    if (v === media.ids[i+1]) {
-      return s + 1
-    }
-  }
-  return s
-}, 0)
-console.log('Number of Repeated ids: ', repeatedIds)
-
 // https://commons.wikimedia.org/w/api.php?action=query&prop=info&pageids=10002109&format=json
 
 async function a() {
@@ -57,14 +33,20 @@ async function a() {
   var parallelCounter = 0
   // var mlk = await getWikiMediaData(16817314)
   // console.log(mlk)
-  for (let key in media.data) {
-    let query = getWikiMediaData({key: key})
+  for (let titleIndex in images) {
+    const fileTitle = images[titleIndex]
+    const filteredTitle = /File:[\s\S]*/.exec(fileTitle)[0]
+    let query = getWikiMediaData({title: filteredTitle})
 
     // when query resolve add metadata to media
     query.then(
       (metadata) => {
+        // debugger
+        const key = metadata.imageInfo["0"].pageid
+        const title = metadata.imageInfo["0"].title
+
         // const name = metadata.imageInfo["0"].imageinfo["0"].extmetadata.ObjectName.value
-        const title = media.data[key].title
+        // const title = media.data[key].title
         // Add metadata to media (data, ids, names, nameToId)
         media.data[key] = { ...media.data[key], ...metadata }
         // media.names.push(name)

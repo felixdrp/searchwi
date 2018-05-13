@@ -13,8 +13,12 @@ const postData = '';
 const baseUrl = 'https://commons.wikimedia.org/w/api.php?action=query&format=json'
 var optionsBasic = new URL(baseUrl)
 
-async function getWikiMediaData(id) {
-  const url = `${baseUrl}&pageids=${id}&`
+async function getWikiMediaData({key = null, title = ''}) {
+  let id = key
+  // debugger
+  const url = id
+    ? `${baseUrl}&pageids=${id}&`
+    : `${baseUrl}&titles=${title}&`;
   // Select the props from wikimedia api query
   const imageInfo = requestWikiData(new URL(
     `${url}prop=imageinfo&iiprop=url|size|mime|metadata|extmetadata|comment`

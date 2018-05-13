@@ -1,0 +1,26 @@
+=============
+Featured images
+=============
+Total There are currently 11,170 of such images in the Commons repository which is roughly 0.024% of the available images (46,415,825)
+https://commons.wikimedia.org/wiki/Commons:Featured_pictures
+
+https://commons.wikimedia.org/wiki/Category:Featured_pictures_on_Wikimedia_Commons
+
+=============
+Quality images
+=============
+Total  183,327 images out of 46,415,824
+https://commons.wikimedia.org/wiki/Commons:Quality_images
+
+https://commons.wikimedia.org/w/index.php?title=Category:Quality_images&fileuntil=04+03+2015+Katharinenkirche+Frankfurt+Main+Germany.jpg%0A04+03+2015+Katharinenkirche+Frankfurt+Main+Germany.jpg#mw-category-media
+
+=============
+Valued images
+=============
+Total Commons currently has 26205 valued images and 283 valued image sets. out of 46,415,824
+https://commons.wikimedia.org/wiki/Commons:Valued_images
+
+https://commons.wikimedia.org/wiki/Category:Valued_images_sorted_by_promotion_date
+
+Option to take list of images
+https://commons.wikimedia.org/wiki/Category:Valued_images_by_month_of_promotion

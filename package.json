@@ -4,7 +4,7 @@
   "description": "Use:",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/tap test/*.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,13 @@
   },
   "homepage": "https://github.com/felixdrp/searchwi#readme",
   "dependencies": {
-    "geckodriver": "^1.10.0",
-    "selenium-webdriver": "^4.0.0-alpha.1"
+    "chromedriver": "^2.38.3",
+    "cmd-promise": "^1.2.0",
+    "geckodriver": "^1.11.0",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "timer-total": "github:felixdrp/timer-total"
+  },
+  "devDependencies": {
+    "tap": "^11.1.4"
   }
 }
