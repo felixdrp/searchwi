@@ -3,41 +3,13 @@ const setTimeoutPromise = util.promisify(setTimeout);
 
 const fs = require('fs');
 
-const fileName = './data-seeds/featured-images-info-object.json'
+// const fileName = './data-seeds/featured-images-info-object.json'
+const fileName = './data-seeds/featured-images-info-object-expired-removed.json'
 // const fileName = './data-seeds/quality-destiled-filtered-images-info-object.json'
 // const fileName = './data-seeds/valued-destiled-filtered-images-info-object.json'
 // const fileName = './data-seeds/qualityValued-destiled-filtered-images-info-object.json'
 
 const images = require(fileName);
-// Filter elements corrupted or lossed
-for (let id of [
-  1097956,
-  1247252,
-  1612827,
-  1613085,
-  1613174,
-  1772173,
-  1805186,
-  2010656,
-  2044253,
-  2100001,
-  2106760,
-  2112596,
-  2167203,
-  2185092,
-  2208354,
-  2235828,
-  2237330,
-  2477482,
-  2477561,
-  2489024,
-  2595372,
-  2595513,
-  2794844,
-  2852685,
-]) {
-  images.ids = images.ids.filter(e=>e != id)
-}
 
 require('geckodriver');
 // require('chromedriver');

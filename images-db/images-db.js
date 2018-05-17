@@ -1,4 +1,4 @@
-const fsPromises = require('fs/promises');
+const fsPromises = require('fs').promises;
 
 class imageDB {
   constructor(objectData = {}) {

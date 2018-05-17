@@ -3,19 +3,19 @@ const setTimeoutPromise = util.promisify(setTimeout);
 
 const fs = require('fs');
 
-const fileName = './data-seeds/featured-images-info-object.json'
+const fileName = './data-seeds/featured-images-info-object-expired-removed.json'
 // const fileName = './data-seeds/quality-destiled-filtered-images-info-object.json'
 // const fileName = './data-seeds/valued-destiled-filtered-images-info-object.json'
 // const fileName = './data-seeds/qualityValued-destiled-filtered-images-info-object.json'
 
 const images = require(fileName);
-
-// Filter elements corrupted or lossed
-for (let id of [
-  30318269,
-]) {
-  images.ids = images.ids.filter(e=>e != id)
-}
+//
+// // Filter elements corrupted or lossed
+// for (let id of [
+//   30318269,
+// ]) {
+//   images.ids = images.ids.filter(e=>e != id)
+// }
 // require('geckodriver');
 require('chromedriver');
 
