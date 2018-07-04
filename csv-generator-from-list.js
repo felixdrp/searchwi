@@ -10,10 +10,14 @@ const images = require('./data-seeds/featured-images-info-object-expired-removed
 const imagesMainSeed = require('./data-seeds/main-seed-filtered.json');
 const imagesExpiredPath = './data-seeds/featured-images-expired.list';
 
-const CSV_FILE_NAME = 'images-featured-destiled.csv';
+// const CSV_FILE_NAME = 'images-featured-destiled.csv';
+// const CSV_FILE_NAME = 'images-valued-featured-destiled.csv';
+// const CSV_FILE_NAME = 'images-quality-featured-destiled.csv';
+const CSV_FILE_NAME = 'images-valued-quality-featured-destiled.csv';
 const header = require('./csv/images-header.js');
 
 const toCSVStringFormat = (stg) => `"${stg.replace(/\"/g, '""')}"`;
+const checkIfExist = (key) => {return key? key.value: ''};
 
 console.time('all files');
 
@@ -27,7 +31,9 @@ console.time('all files');
       // CSV header
       header.CSV_HEADER.join(',')
     ]
-    let ids = imagesMainSeed.featuredDestiled.reduce((res, e) => {
+    // let ids = imagesMainSeed.valuedFeaturedDestiled.reduce((res, e) => {
+    // let ids = imagesMainSeed.qualityFeaturedDestiled.reduce((res, e) => {
+    let ids = imagesMainSeed.valuedQualityFeatured.reduce((res, e) => {
       let comp = decodeURIComponent(e).slice(6);
       for (let i in images.data) {
         if (comp.includes(images.data[i].pageimages["0"].pageimage)) {
@@ -40,7 +46,7 @@ console.time('all files');
     }, [])
     //
     ids = ids.filter(e=>!imagesExpired.includes(e))
-    debugger
+    // debugger
 
     for (let i=0;i<ids.length;i++) {
       let id = ids[i]
@@ -55,6 +61,8 @@ console.time('all files');
             csvLineObj[header.ID] = id
             // Image Title
             csvLineObj[header.TITLE] = toCSVStringFormat(images.data[id].pageimages["0"].pageimage)
+            // Image Date
+            csvLineObj[header.DATE_TIME] = toCSVStringFormat(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.DateTime.value)
             // Image URL
             csvLineObj[header.URL] = toCSVStringFormat(
               images.data[id].imageInfo["0"].imageinfo["0"].descriptionurl
@@ -65,7 +73,23 @@ console.time('all files');
             //   removed 2 firsts searchs. No valids.
             csvLineObj[header.GOOGLE_IMAGE_SEARCH_HIT_COUNT] = data.resultStat && data.resultStat.numResults >= 2?
               data.resultStat.numResults - 2:
-              0
+              0;
+            // Image Metadata
+            csvLineObj[header.TYPE] = images.data[id].imageInfo["0"].imageinfo["0"].mime
+            csvLineObj[header.SIZE] = images.data[id].imageInfo["0"].imageinfo["0"].size
+            csvLineObj[header.HEIGHT] = images.data[id].imageInfo["0"].imageinfo["0"].height
+            csvLineObj[header.WIDTH] = images.data[id].imageInfo["0"].imageinfo["0"].width
+            // Featured?
+            csvLineObj[header.ASSESSMENTS] = toCSVStringFormat(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Assessments.value)
+            csvLineObj[header.CATEGORIES] = toCSVStringFormat(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Categories.value)
+            csvLineObj[header.LICENSE] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.License))
+            csvLineObj[header.LICENSEURL] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Licenseurl))
+            csvLineObj[header.PERMISSION] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Permission))
+            csvLineObj[header.USAGETERMS] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Usageterms))
+            csvLineObj[header.RESTRICTIONS] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Restrictions))
+            csvLineObj[header.ARTIST] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Artist))
+            csvLineObj[header.CREDIT] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Credit))
+            csvLineObj[header.ATTRIBUTION] = toCSVStringFormat(checkIfExist(images.data[id].imageInfo["0"].imageinfo["0"].extmetadata.Attribution))
 
             for (let title of header.CSV_HEADER) {
               csvLine.push(csvLineObj[title])
