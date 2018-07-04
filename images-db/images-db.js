@@ -6,6 +6,10 @@ class imageDB {
   }
 
   loadData(objectData) {
+    if (objectData.ids.length == 0) {
+      objectData.ids = Object.keys(objectData.data)
+      objectData.ids = objectData.ids.map(element => parseInt(element))
+    }
     this.objectData = objectData;
   }
 

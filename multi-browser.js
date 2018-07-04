@@ -15,7 +15,7 @@ const fileName = './data-seeds/quality-distilled-filtered-images-info-object-exp
 const images = require(fileName);
 // Filter elements corrupted or lossed
 let imDB = new imagesDB(images)
-
+// imDB.save(fileName)
 // async function removeExpired() {
 //   for (let id of [
 //     1097956,
