@@ -14,7 +14,21 @@ node --inspect-brk get-images-info.js
 # Destile information. Have a look to doc files for more info.
 node --inspect-brk compare-seeds.js
 
+# Option A
 node --max-old-space-size=4096 google_test0.js
+
+csv-generator.js
+csv-generator-google-image-search.js
+
+
+# Option B
+# In case of run with Multiple Browsers
+# multi-browser.js
+node --inspect-brk  --max-old-space-size=4096 multi-browser.js
+
+# Generate csv files
+node --max-old-space-size=4096 csv-generator-from-list.js
+node --max-old-space-size=4096 csv-generator-google-image-search-from-list.js
 
 # TODO
 
