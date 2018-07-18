@@ -27,7 +27,7 @@ csv-generator-google-image-search.js
 node --inspect-brk  --max-old-space-size=4096 multi-browser.js
 
 # Generate csv files
-node --max-old-space-size=4096 csv-generator-from-list.js
+node --inspect-brk --max-old-space-size=4096 csv-generator-from-list.js
 node --max-old-space-size=4096 csv-generator-google-image-search-from-list.js
 
 # TODO

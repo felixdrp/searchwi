@@ -41,6 +41,7 @@ console.time('all files');
     // ### If imagesMainSeed
     // If Using data without distill then first distill data from imagesMainSeed
     // Uncomment to distill info from imagesMainSeed
+    
     // // ids = imagesMainSeed.valuedFeatureddistilled.reduce((res, e) => {
     // // ids = imagesMainSeed.qualityFeatureddistilled.reduce((res, e) => {
     // ids = imagesMainSeed.valuedQualityFeatured.reduce((res, e) => {
@@ -56,7 +57,7 @@ console.time('all files');
     // }, [])
 
     // ### Else (imagesMainSeed not defined)
-    ids =
+    ids = images.ids
 
     // Remove expired images
     ids = ids.filter(e=>!imagesExpired.includes(e))
