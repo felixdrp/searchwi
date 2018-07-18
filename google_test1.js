@@ -6,9 +6,12 @@ const fs = require('fs');
 // const fileName = './data-seeds/featured-images-info-object.json'
 // const fileName = './data-seeds/featured-images-info-object-expired-removed.json'
 
-const fileName = './data-seeds/quality-distilled-filtered-images-info-object-expired-removed.json'
+// const fileName = './data-seeds/quality-distilled-filtered-images-info-object-expired-removed.json'
 // const fileName = './data-seeds/quality-distilled-filtered-images-info-object.json'
+
+const fileName = './data-seeds/valued-distilled-filtered-images-info-object-expired-removed.json'
 // const fileName = './data-seeds/valued-distilled-filtered-images-info-object.json'
+
 // const fileName = './data-seeds/qualityValued-distilled-filtered-images-info-object.json'
 
 const images = require(fileName);

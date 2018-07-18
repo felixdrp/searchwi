@@ -20,7 +20,7 @@
     "chromedriver": "^2.38.3",
     "cmd-promise": "^1.2.0",
     "geckodriver": "^1.11.0",
-    "parse-domain": "^2.0.0",
+    "parse-domain": "^2.1.2",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "timer-total": "github:felixdrp/timer-total"
   },

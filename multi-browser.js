@@ -9,8 +9,12 @@ const imagesDB = require('./images-db/images-db');
 // const fileNameExpiratedImages = './data-seeds/featured-images-expired.list';
 // const fileName = './data-seeds/featured-images-info-object-expired-removed.json'
 
-const fileNameExpiratedImages = './data-seeds/quality-distilled-images-expired.list';
-const fileName = './data-seeds/quality-distilled-filtered-images-info-object-expired-removed.json'
+// const fileNameExpiratedImages = './data-seeds/quality-distilled-images-expired.list';
+// const fileName = './data-seeds/quality-distilled-filtered-images-info-object-expired-removed.json'
+
+const fileNameExpiratedImages = './data-seeds/valued-distilled-images-expired.list';
+const fileName = './data-seeds/valued-distilled-filtered-images-info-object-expired-removed.json'
+
 
 const images = require(fileName);
 // Filter elements corrupted or lossed
