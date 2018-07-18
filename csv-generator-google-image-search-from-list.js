@@ -6,16 +6,19 @@ const fs = require('fs');
 const readFileAsync = util.promisify(fs.readFile);
 const parseDomain = require('parse-domain');
 
-const images = require('./data-seeds/featured-images-info-object-expired-removed.json');
+// const imagesMainSeed = require('./data-seeds/main-seed-filtered.json');
 
-const imagesMainSeed = require('./data-seeds/main-seed-filtered.json');
-const imagesExpiredPath = './data-seeds/featured-images-expired.list';
+// const images = require('./data-seeds/featured-images-info-object-expired-removed.json');
+const images = require('./data-seeds/valued-distilled-filtered-images-info-object-expired-removed.json');
 
+// const imagesExpiredPath = './data-seeds/featured-images-expired.list';
+const imagesExpiredPath = './data-seeds/valued-distilled-images-expired.list';
 
-// const CSV_FILE_NAME = 'images-featured-destiled-search-results.csv';
-// const CSV_FILE_NAME = 'images-valued-featured-destiled-search-results.csv';
-// const CSV_FILE_NAME = 'images-quality-featured-destiled-search-results.csv';
-const CSV_FILE_NAME = 'images-valued-quality-featured-destiled-search-results.csv';
+// const CSV_FILE_NAME = 'images-featured-distilled-search-results.csv';
+// const CSV_FILE_NAME = 'images-valued-featured-distilled-search-results.csv';
+// const CSV_FILE_NAME = 'images-quality-featured-distilled-search-results.csv';
+// const CSV_FILE_NAME = 'images-valued-quality-featured-distilled-search-results.csv';
+const CSV_FILE_NAME = 'images-valued-distilled-search-results.csv';
 const header = require('./csv/images-google-search-header.js');
 const {euTLD, generalTLD} = require('./csv/domains.js');
 
@@ -34,21 +37,30 @@ console.time('all files');
       // CSV header
       header.CSV_HEADER.join(',')
     ]
-    // let ids = imagesMainSeed.featuredDestiled.reduce((res, e) => {
-    // let ids = imagesMainSeed.valuedFeaturedDestiled.reduce((res, e) => {
-    // let ids = imagesMainSeed.qualityFeaturedDestiled.reduce((res, e) => {
-    let ids = imagesMainSeed.valuedQualityFeatured.reduce((res, e) => {
-      let comp = decodeURIComponent(e).slice(6);
-      for (let i in images.data) {
-        if (comp.includes(images.data[i].pageimages["0"].pageimage)) {
-      // console.log(i)
-          res.push(parseInt(i))
-          return res
-        }
-      }
-      return res
-    }, [])
-    //
+    let ids
+
+    // ### If imagesMainSeed
+    // If Using data without distill then first distill data from imagesMainSeed
+    // Uncomment to distill info from imagesMainSeed
+
+    // // ids = imagesMainSeed.featureddistilled.reduce((res, e) => {
+    // // ids = imagesMainSeed.valuedFeatureddistilled.reduce((res, e) => {
+    // // ids = imagesMainSeed.qualityFeatureddistilled.reduce((res, e) => {
+    // ids = imagesMainSeed.valuedQualityFeatured.reduce((res, e) => {
+    //   let comp = decodeURIComponent(e).slice(6);
+    //   for (let i in images.data) {
+    //     if (comp.includes(images.data[i].pageimages["0"].pageimage)) {
+    //   // console.log(i)
+    //       res.push(parseInt(i))
+    //       return res
+    //     }
+    //   }
+    //   return res
+    // }, [])
+
+    // ### Else (imagesMainSeed not defined)
+    ids = images.ids
+    
     ids = ids.filter(e=>!imagesExpired.includes(e))
 
     for (let i=0;i<ids.length;i++) {

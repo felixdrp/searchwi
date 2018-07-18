@@ -12,6 +12,9 @@ const imagesDB = require('./images-db/images-db');
 // const fileNameExpiratedImages = './data-seeds/quality-distilled-images-expired.list';
 // const fileName = './data-seeds/quality-distilled-filtered-images-info-object-expired-removed.json'
 
+// const fileNameExpiratedImages = './data-seeds/valued-distilled-images-expired.list';
+// const fileName = './data-seeds/valued-distilled-filtered-images-info-object-expired-removed.json'
+
 const fileNameExpiratedImages = './data-seeds/qualityValued-distilled-images-expired.list';
 const fileName = './data-seeds/qualityValued-distilled-filtered-images-info-object-expired-removed.json'
 
